@@ -83,7 +83,7 @@ Gridmap::Gridmap(ros::NodeHandle &nh) : nh_(nh), it(nh), converter() {
 
     // making sure tf between map and laser is published before running
     ros::Time now = ros::Time::now();
-    listener.waitForTransform("/map", "/laser", now, ros::Duration(1.0));
+    listener.waitForTransform("/map", "/laser", now, ros::Duration(15.0));
     ROS_INFO("Transform arrived.");
 
     ROS_INFO("Gridmap node object init done.");
