@@ -34,6 +34,8 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <cv_bridge/cv_bridge.h>
 
+static const int STATIC_THRESH = 50;
+
 class Gridmap {
 public:
     Gridmap(ros::NodeHandle &nh);
@@ -69,14 +71,13 @@ private:
     Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> dynamic_layer;
 
     // map params
-    bool INIT;
     float map_resolution; // m/cell
     int map_width, map_height; // cells
     geometry_msgs::Pose map_origin; // cell(0,0), [m, m, rad]
     float origin_x, origin_y;
     nav_msgs::MapMetaData all_map_metadata;
     nav_msgs::OccupancyGrid env_layer_msg;
-    int STATIC_THRESH; // threshold for value that's considered static obs
+    // int STATIC_THRESH; // threshold for value that's considered static obs
 
     // laser params
     bool LASER_INIT;

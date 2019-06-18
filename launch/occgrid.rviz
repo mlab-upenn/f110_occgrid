@@ -158,22 +158,6 @@ Visualization Manager:
       Show Descriptions: true
       Show Visual Aids: false
       Update Topic: /racecar_sim/update
-      Value: true
-    - Alpha: 1
-      Axes Length: 1
-      Axes Radius: 0.100000001
-      Class: rviz/Pose
-      Color: 255; 25; 0
-      Enabled: true
-      Head Length: 0.300000012
-      Head Radius: 0.100000001
-      Name: Pose
-      Shaft Length: 1
-      Shaft Radius: 0.0500000007
-      Shape: Arrow
-      Topic: /pf/viz/inferred_pose
-      Unreliable: false
-      Value: true
     - Class: rviz/Marker
       Enabled: true
       Marker Topic: /path_lines
@@ -181,29 +165,6 @@ Visualization Manager:
       Namespaces:
         "": true
       Queue Size: 100
-      Value: true
-    - Alpha: 1
-      Buffer Length: 1
-      Class: rviz/Path
-      Color: 25; 255; 0
-      Enabled: true
-      Head Diameter: 0.300000012
-      Head Length: 0.200000003
-      Length: 0.300000012
-      Line Style: Billboards
-      Line Width: 0.100000001
-      Name: Path
-      Offset:
-        X: 0
-        Y: 0
-        Z: 0
-      Pose Color: 255; 85; 255
-      Pose Style: None
-      Radius: 0.0299999993
-      Shaft Diameter: 0.100000001
-      Shaft Length: 0.100000001
-      Topic: /smoothed_path
-      Unreliable: false
       Value: true
     - Class: rviz/Marker
       Enabled: true
@@ -228,6 +189,45 @@ Visualization Manager:
       Namespaces:
         "": true
       Queue Size: 100
+      Value: true
+    - Alpha: 1
+      Axes Length: 1
+      Axes Radius: 0.100000001
+      Class: rviz/Pose
+      Color: 255; 25; 0
+      Enabled: true
+      Head Length: 0.300000012
+      Head Radius: 0.100000001
+      Name: Pose
+      Shaft Length: 1
+      Shaft Radius: 0.0500000007
+      Shape: Arrow
+      Topic: /pf/viz/inferred_pose
+      Unreliable: false
+      Value: true
+>>>>>>> origin/master
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 25; 255; 0
+      Enabled: true
+      Head Diameter: 0.300000012
+      Head Length: 0.200000003
+      Length: 0.300000012
+      Line Style: Billboards
+      Line Width: 0.100000001
+      Name: Path
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Radius: 0.0299999993
+      Shaft Diameter: 0.100000001
+      Shaft Length: 0.100000001
+      Topic: /smoothed_path
+      Unreliable: false
       Value: true
   Enabled: true
   Global Options:
@@ -254,16 +254,16 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 33.8928299
+      Distance: 54.9535446
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -1.95062542
-        Y: 0.779035807
-        Z: 0.736700654
+        X: -1.59341908
+        Y: -0.736956716
+        Z: 0.737067163
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false

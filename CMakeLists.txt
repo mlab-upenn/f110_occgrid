@@ -119,7 +119,7 @@ catkin_package(
   INCLUDE_DIRS include
   LIBRARIES f110_occgrid
   CATKIN_DEPENDS geometry_msgs nav_msgs race roscpp rospy sensor_msgs std_msgs tf message_runtime
-  DEPENDS system_lib
+  DEPENDS
 )
 
 ###########

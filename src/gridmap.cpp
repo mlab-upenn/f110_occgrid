@@ -33,6 +33,22 @@ Gridmap::Gridmap(ros::NodeHandle &nh) : nh_(nh), it(nh), converter() {
     origin_y = origin.y;
     ROS_INFO("Map Metadata Loaded.");
 
+    // wait for the first map message and put in env_layer
+    boost::shared_ptr<nav_msgs::OccupancyGrid const> map_ptr;
+    nav_msgs::OccupancyGrid map_msg;
+    map_ptr = ros::topic::waitForMessage<nav_msgs::OccupancyGrid>("/map");
+    if (map_ptr != NULL) {
+        map_msg = *map_ptr;
+    }
+    std::vector<int8_t> map_data = map_msg.data;
+    // convert to int
+    std::vector<int> map_data_int(map_data.begin(), map_data.end());
+    // save data to attribute
+    // map value 100 if occupied, 0 if free
+    int* data_start = map_data_int.data();
+    Eigen::Map<Eigen::MatrixXi>(data_start, env_layer.rows(), env_layer.cols()) = env_layer;
+    ROS_INFO("Map in Eigen.");
+
     boost::shared_ptr<sensor_msgs::LaserScan const> laser_ptr;
     sensor_msgs::LaserScan laser_msg;
     laser_ptr = ros::topic::waitForMessage<sensor_msgs::LaserScan>("/scan");
@@ -48,9 +64,8 @@ Gridmap::Gridmap(ros::NodeHandle &nh) : nh_(nh), it(nh), converter() {
     ROS_INFO("Laser Params Loaded.");
 
     // params/attr init
-    INIT = false;
-    INFLATION = 1;
-    STATIC_THRESH = 50; // if seen n times then considered static obs
+    INFLATION = 3;
+    // STATIC_THRESH = 50; // if seen n times then considered static obs
     img_size = 200;
 
     image_pub = it.advertise("/converted_map", 1);
@@ -68,7 +83,7 @@ Gridmap::Gridmap(ros::NodeHandle &nh) : nh_(nh), it(nh), converter() {
 
     // making sure tf between map and laser is published before running
     ros::Time now = ros::Time::now();
-    listener.waitForTransform("/map", "/laser", now, ros::Duration(1.0));
+    listener.waitForTransform("/map", "/laser", now, ros::Duration(15.0));
     ROS_INFO("Transform arrived.");
 
     ROS_INFO("Gridmap node object init done.");
@@ -79,17 +94,6 @@ void Gridmap::map_callback(const nav_msgs::OccupancyGrid::ConstPtr& map_msg) {
     // reroute to env_layer
     env_layer_msg = *map_msg;
     ROS_INFO("Map rerouted.");
-    // if (INIT)? if slow only run this once with flag
-    if (INIT) return;
-    std::vector<int8_t> map_data = map_msg->data;
-    // convert to int
-    std::vector<int> map_data_int(map_data.begin(), map_data.end());
-    // save data to attribute
-    // map value 100 if occupied, 0 if free
-    int* data_start = map_data_int.data();
-    Eigen::Map<Eigen::MatrixXi>(data_start, env_layer.rows(), env_layer.cols()) = env_layer;
-    INIT = true;
-    ROS_INFO("Map in Eigen.");
 }
 
 void Gridmap::scan_callback(const sensor_msgs::LaserScan::ConstPtr& scan_msg) {
@@ -157,6 +161,9 @@ void Gridmap::scan_callback(const sensor_msgs::LaserScan::ConstPtr& scan_msg) {
         }
         if (dyn[i_layer] > 0 && stat[i_layer] < 100) {
             stat[i_layer]++;
+        }
+        if (env[i_layer] == 0 && dyn[i_layer] == 0 && stat[i_layer] > 0) {
+            stat[i_layer]--;
         }
         if (dyn[i_layer] > 0 && stat[i_layer] >= STATIC_THRESH) {
             dyn[i_layer] = 0;
@@ -237,7 +244,7 @@ void Gridmap::pub_layers() {
     // publish
     static_pub.publish(static_layer_msg);
     dynamic_pub.publish(dynamic_layer_msg);
-    if (INIT) env_pub.publish(env_layer_msg);
+    env_pub.publish(env_layer_msg);
 }
 
 // publish layers overload, boolean specifies if images are published
@@ -262,7 +269,7 @@ void Gridmap::pub_layers(bool pub_image) {
     // publish
     static_pub.publish(static_layer_msg);
     dynamic_pub.publish(dynamic_layer_msg);
-    if (INIT) env_pub.publish(env_layer_msg);
+    env_pub.publish(env_layer_msg);
 
     if (pub_image) {
         cv::Mat img = layers_2_cv_img();

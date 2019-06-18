@@ -6,6 +6,8 @@
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/Pose.h>
 #include <visualization_msgs/Marker.h>
+#include "f110_occgrid/gridmap.h"
+
 
 #include <vector>
 
@@ -31,7 +33,7 @@ private:
     // tf stuff
     tf::TransformListener listener;
 
-    int STATIC_THRESH;
+    // int STATIC_THRESH;
 
     void env_callback(const nav_msgs::OccupancyGrid::ConstPtr& msg);
     void static_callback(const nav_msgs::OccupancyGrid::ConstPtr& msg);

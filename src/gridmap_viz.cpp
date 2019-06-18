@@ -1,5 +1,4 @@
 #include "f110_occgrid/gridmap_viz.h"
-#include "f110_occgrid/gridmap.h"
 
 GridmapViz::~GridmapViz() {
     ROS_INFO("Occupancy grid visualization shutting down");
@@ -31,11 +30,11 @@ GridmapViz::GridmapViz(ros::NodeHandle &nh) : nh_(nh) {
     // don't think orientation is used here
     ROS_INFO("Map Metadata Loaded");
 
-    STATIC_THRESH = 50;
+    // STATIC_THRESH = 50;
 
     // making sure tf between map and laser is published before running
     ros::Time now = ros::Time::now();
-    listener.waitForTransform("/map", "/laser", now, ros::Duration(1.0));
+    listener.waitForTransform("/map", "/laser", now, ros::Duration(15.0));
     ROS_INFO("Transform arrived.");
 }
 
@@ -46,9 +45,9 @@ void GridmapViz::env_callback(const nav_msgs::OccupancyGrid::ConstPtr& env_layer
     visualization_msgs::Marker marker;
     marker.header.frame_id = "/map";
     marker.type = marker.CUBE_LIST;
-    marker.scale.x = 0.05;
-    marker.scale.y = 0.05;
-    marker.scale.z = 0.05;
+    marker.scale.x = 0.04;
+    marker.scale.y = 0.04;
+    marker.scale.z = 0.04;
 
     std_msgs::ColorRGBA col;
     col.a = 1.0;
@@ -72,9 +71,9 @@ void GridmapViz::static_callback(const nav_msgs::OccupancyGrid::ConstPtr& static
     visualization_msgs::Marker marker;
     marker.header.frame_id = "/map";
     marker.type = marker.CUBE_LIST;
-    marker.scale.x = 0.05;
-    marker.scale.y = 0.05;
-    marker.scale.z = 0.05;
+    marker.scale.x = 0.04;
+    marker.scale.y = 0.04;
+    marker.scale.z = 0.04;
 
     std_msgs::ColorRGBA col;
     col.a = 1.0;
@@ -98,9 +97,9 @@ void GridmapViz::dynamic_callback(const nav_msgs::OccupancyGrid::ConstPtr& dynam
     visualization_msgs::Marker marker;
     marker.header.frame_id = "/map";
     marker.type = marker.CUBE_LIST;
-    marker.scale.x = 0.05;
-    marker.scale.y = 0.05;
-    marker.scale.z = 0.05;
+    marker.scale.x = 0.04;
+    marker.scale.y = 0.04;
+    marker.scale.z = 0.04;
 
     std_msgs::ColorRGBA col;
     col.a = 1.0;
