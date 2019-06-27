@@ -5,9 +5,9 @@ Gridmap::~Gridmap() {
 }
 Gridmap::Gridmap(ros::NodeHandle &nh) : nh_(nh), it(nh), converter() {
     // publishers
-    env_pub = nh_.advertise<nav_msgs::OccupancyGrid>("env_layer", 10);
-    static_pub = nh_.advertise<nav_msgs::OccupancyGrid>("static_layer", 10);
-    dynamic_pub = nh_.advertise<nav_msgs::OccupancyGrid>("dynamic_layer", 10);
+    env_pub = nh_.advertise<nav_msgs::OccupancyGrid>("/env_layer", 10);
+    static_pub = nh_.advertise<nav_msgs::OccupancyGrid>("/static_layer", 10);
+    dynamic_pub = nh_.advertise<nav_msgs::OccupancyGrid>("/dynamic_layer", 10);
 
     service = nh_.advertiseService("convert_map", &Gridmap::get_converted_image, this);
 
