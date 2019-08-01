@@ -5,15 +5,19 @@ Gridmap::~Gridmap() {
 }
 Gridmap::Gridmap(ros::NodeHandle &nh) : nh_(nh), it(nh), converter() {
     // publishers
-    env_pub = nh_.advertise<nav_msgs::OccupancyGrid>("env_layer", 10);
-    static_pub = nh_.advertise<nav_msgs::OccupancyGrid>("static_layer", 10);
-    dynamic_pub = nh_.advertise<nav_msgs::OccupancyGrid>("dynamic_layer", 10);
+    env_pub = nh_.advertise<nav_msgs::OccupancyGrid>("env_layer", 1);
+    static_pub = nh_.advertise<nav_msgs::OccupancyGrid>("static_layer", 1);
+    dynamic_pub = nh_.advertise<nav_msgs::OccupancyGrid>("dynamic_layer", 1);
+
+    env_viz_pub = nh_.advertise<visualization_msgs::Marker>("env_viz", 1);
+    stat_viz_pub = nh_.advertise<visualization_msgs::Marker>("static_viz", 1);
+    dyn_viz_pub = nh_.advertise<visualization_msgs::Marker>("dynamic_viz", 1);
 
     service = nh_.advertiseService("convert_map", &Gridmap::get_converted_image, this);
 
     // subscribers
-    scan_sub = nh_.subscribe("/scan", 10, &Gridmap::scan_callback, this);
-    map_sub = nh_.subscribe("/map", 10, &Gridmap::map_callback, this);
+    scan_sub = nh_.subscribe("/scan", 1, &Gridmap::scan_callback, this);
+    map_sub = nh_.subscribe("/map", 1, &Gridmap::map_callback, this);
 
     // called once
     // nav_msgs::OccupancyGrid env_map_msg = ros::topic::waitForMessage("/map")
@@ -69,6 +73,7 @@ Gridmap::Gridmap(ros::NodeHandle &nh) : nh_(nh), it(nh), converter() {
     img_size = 200;
 
     image_pub = it.advertise("/converted_map", 1);
+    layers_pub = it.advertise("/occgrid_layers", 1);
     
     env_layer.resize(map_height, map_width);
     env_layer.setZero();
@@ -216,10 +221,84 @@ void Gridmap::scan_callback(const sensor_msgs::LaserScan::ConstPtr& scan_msg) {
     sensor_msgs::ImagePtr new_ros_img = cv_2_ros_img(new_img);
     image_pub.publish(new_ros_img);
 
+    cv::Mat layers_img = layers_2_cv_img();
+    sensor_msgs::ImagePtr layers_img_ros = cv_2_ros_img(layers_img);
+    layers_pub.publish(layers_img_ros);
+
     // publish to the topics
-    pub_layers();
+    // pub_layers();
+
+    // visualize layers
+    viz_layers();
+
     // clear dynamic layer
     dynamic_layer.setZero();
+}
+
+// visualize layers
+void Gridmap::viz_layers() {
+    visualization_msgs::Marker env_marker;
+    env_marker.header.frame_id = "/map";
+    env_marker.type = env_marker.CUBE_LIST;
+    env_marker.scale.x = 0.04;
+    env_marker.scale.y = 0.04;
+    env_marker.scale.z = 0.04;
+    std_msgs::ColorRGBA env_col;
+    env_col.a = 1.0;
+    env_col.r = 0.0;
+    env_col.g = 0.0;
+    env_col.b = 0.0;
+    std::vector<int> env_vector(env_layer.data(), env_layer.data()+env_layer.size());
+    for (size_t i=0; i<env_vector.size(); i++) {
+        if (env_vector[i] != 0) {
+            geometry_msgs::Point cube = cell_2_coord(i);
+            env_marker.points.push_back(cube);
+            env_marker.colors.push_back(env_col);
+        }
+    }
+    env_viz_pub.publish(env_marker);
+
+    visualization_msgs::Marker stat_marker;
+    stat_marker.header.frame_id = "/map";
+    stat_marker.type = stat_marker.CUBE_LIST;
+    stat_marker.scale.x = 0.04;
+    stat_marker.scale.y = 0.04;
+    stat_marker.scale.z = 0.04;
+    std_msgs::ColorRGBA stat_col;
+    stat_col.a = 1.0;
+    stat_col.r = 1.0;
+    stat_col.g = 0.0;
+    stat_col.b = 0.0;
+    std::vector<int> stat_vector(static_layer.data(), static_layer.data()+static_layer.size());
+    for (size_t i=0; i<stat_vector.size(); i++) {
+        if (stat_vector[i] != 0) {
+            geometry_msgs::Point cube = cell_2_coord(i);
+            stat_marker.points.push_back(cube);
+            stat_marker.colors.push_back(stat_col);
+        }
+    }
+    stat_viz_pub.publish(stat_marker);
+
+    visualization_msgs::Marker dyn_marker;
+    dyn_marker.header.frame_id = "/map";
+    dyn_marker.type = dyn_marker.CUBE_LIST;
+    dyn_marker.scale.x = 0.04;
+    dyn_marker.scale.y = 0.04;
+    dyn_marker.scale.z = 0.04;
+    std_msgs::ColorRGBA dyn_col;
+    dyn_col.a = 1.0;
+    dyn_col.r = 0.0;
+    dyn_col.g = 0.0;
+    dyn_col.b = 1.0;
+    std::vector<int> dyn_vector(dynamic_layer.data(), dynamic_layer.data()+dynamic_layer.size());
+    for (size_t i=0; i<dyn_vector.size(); i++) {
+        if (dyn_vector[i] != 0) {
+            geometry_msgs::Point cube = cell_2_coord(i);
+            dyn_marker.points.push_back(cube);
+            dyn_marker.colors.push_back(dyn_col);
+        }
+    }
+    dyn_viz_pub.publish(dyn_marker);
 }
 
 // publish layers, default: no argument, publishes all current layer via attr
@@ -309,9 +388,19 @@ sensor_msgs::ImagePtr Gridmap::layers_2_img() {
 }
 cv::Mat Gridmap::layers_2_cv_img() {
     cv::Mat img = cv::Mat::zeros(map_height, map_width, CV_8UC3);
-    cv::Mat blue = cv::Mat(map_height, map_width, CV_8UC1, dynamic_layer.data());
-    cv::Mat green = cv::Mat(map_height, map_width, CV_8UC1, static_layer.data());
-    cv::Mat red = cv::Mat(map_height, map_width, CV_8UC1, env_layer.data());
+    // convert to int8
+    std::vector<int> dynamic_data(dynamic_layer.data(), dynamic_layer.data()+dynamic_layer.size());
+    std::vector<int8_t> dynamic_data_int8(dynamic_data.begin(), dynamic_data.end());
+
+    std::vector<int> static_data(static_layer.data(), static_layer.data()+static_layer.size());
+    std::vector<int8_t> static_data_int8(static_data.begin(), static_data.end());
+
+    std::vector<int> env_data(env_layer.data(), env_layer.data()+env_layer.size());
+    std::vector<int8_t> env_data_int8(env_data.begin(), env_data.end());
+
+    cv::Mat blue = cv::Mat(map_height, map_width, CV_8UC1, dynamic_data_int8.data());
+    cv::Mat green = cv::Mat(map_height, map_width, CV_8UC1, static_data_int8.data());
+    cv::Mat red = cv::Mat(map_height, map_width, CV_8UC1, env_data_int8.data());
     cv::Mat channels[] = {blue, green, red};
     cv::merge(channels, 3, img);
     return img;

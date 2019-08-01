@@ -57,6 +57,10 @@ private:
     ros::Publisher static_pub;
     ros::Publisher dynamic_pub;
 
+    ros::Publisher env_viz_pub;
+    ros::Publisher stat_viz_pub;
+    ros::Publisher dyn_viz_pub;
+
     ros::ServiceServer service;
 
     ros::Subscriber scan_sub;
@@ -91,6 +95,7 @@ private:
     // current frame image
     image_transport::ImageTransport it;
     image_transport::Publisher image_pub;
+    image_transport::Publisher layers_pub;
     sensor_msgs::ImagePtr current_img;
     int img_size;
 
@@ -100,6 +105,7 @@ private:
     // private methods
     void scan_callback(const sensor_msgs::LaserScan::ConstPtr& msg);
     void map_callback(const nav_msgs::OccupancyGrid::ConstPtr& msg);
+    void viz_layers();
     void pub_layers();
     void pub_layers(bool pub_image);
     void pub_layers(Eigen::MatrixXi &layer, ros::Publisher &publisher);
