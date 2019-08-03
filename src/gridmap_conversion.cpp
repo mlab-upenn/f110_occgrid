@@ -1,11 +1,11 @@
 #include "f110_occgrid/gridmap_conversion.h"
 
 GridmapConverter::~GridmapConverter() {
-    try {
-        cv::destroyWindow(OPENCV_WINDOW);
-    } catch (cv::Exception ex) {
-        ROS_ERROR("Destructor error: %s", ex.what());
-    }
+    // try {
+    //     cv::destroyWindow(OPENCV_WINDOW);
+    // } catch (cv::Exception ex) {
+    //     ROS_ERROR("Destructor error: %s", ex.what());
+    // }
     ROS_INFO("Gridmap Converter shutting down.");
 }
 

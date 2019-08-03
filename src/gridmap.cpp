@@ -49,8 +49,27 @@ Gridmap::Gridmap(ros::NodeHandle &nh) : nh_(nh), it(nh), converter() {
     std::vector<int> map_data_int(map_data.begin(), map_data.end());
     // save data to attribute
     // map value 100 if occupied, 0 if free
-    int* data_start = map_data_int.data();
-    Eigen::Map<Eigen::MatrixXi>(data_start, env_layer.rows(), env_layer.cols()) = env_layer;
+    // int* data_start = map_data_int.data();
+    // Eigen::Map<Eigen::MatrixXi>(data_start, env_layer.rows(), env_layer.cols()) = env_layer;
+
+    env_layer.resize(map_height, map_width);
+    env_layer.setZero();
+    
+    static_layer.resize(map_height, map_width);
+    static_layer.setZero();
+    
+    dynamic_layer.resize(map_height, map_width);
+    dynamic_layer.setZero();
+
+    ROS_INFO_STREAM("env layer rows and cols: " << env_layer.rows() << ", " << env_layer.cols());
+
+    for (int i=0; i<map_data_int.size(); i++) {
+        std::vector<int> rc = ind_2_rc(i);
+        env_layer(rc[0], rc[1]) = map_data_int[i];
+    }
+    if (env_layer.isZero()) {
+        ROS_INFO_STREAM("Env layer all zero.");
+    }
     ROS_INFO("Map in Eigen.");
 
     boost::shared_ptr<sensor_msgs::LaserScan const> laser_ptr;
@@ -75,14 +94,14 @@ Gridmap::Gridmap(ros::NodeHandle &nh) : nh_(nh), it(nh), converter() {
     image_pub = it.advertise("/converted_map", 1);
     layers_pub = it.advertise("/occgrid_layers", 1);
     
-    env_layer.resize(map_height, map_width);
-    env_layer.setZero();
+    // env_layer.resize(map_height, map_width);
+    // env_layer.setZero();
     
-    static_layer.resize(map_height, map_width);
-    static_layer.setZero();
+    // static_layer.resize(map_height, map_width);
+    // static_layer.setZero();
     
-    dynamic_layer.resize(map_height, map_width);
-    dynamic_layer.setZero();
+    // dynamic_layer.resize(map_height, map_width);
+    // dynamic_layer.setZero();
 
     // converter = GridmapConverter();
 
@@ -177,45 +196,6 @@ void Gridmap::scan_callback(const sensor_msgs::LaserScan::ConstPtr& scan_msg) {
             stat[i_layer] = 0;
         }
     }
-    // ros::Time aftoverlap = ros::Time::now();
-    // ros::Duration diff = aftoverlap - b4overlap;
-    // std::cout << "overlap time diff: " << diff << std::endl;
-
-
-    // Eigen::Array<bool, Eigen::Dynamic, Eigen::Dynamic> env_mask = (env_layer.array() > 0);
-    // Eigen::Array<bool, Eigen::Dynamic, Eigen::Dynamic> dynamic_mask = (dynamic_layer.array() > 0);
-    // Eigen::Array<bool, Eigen::Dynamic, Eigen::Dynamic> env_dynamic_overlap = env_mask && dynamic_mask;
-    
-    // std::vector<int> env_dynamic_overlap_ind = find_nonzero(env_dynamic_overlap);
-    // // removing hits from dynamic layer if overlapped
-    // for (int i_o=0; i_o<env_dynamic_overlap_ind.size(); i_o++) {
-    //     std::vector<int> current_ind = ind_2_rc(env_dynamic_overlap_ind[i_o]);
-    //     dynamic_layer(current_ind[0], current_ind[1]) = 0;
-    // }
-
-
-
-    // find overlap between new dynamic and static, 1 if true, 0 if false
-//     Eigen::Array<bool, Eigen::Dynamic, Eigen::Dynamic> dynamic_mask_new = (dynamic_layer.array() > 0);
-//     std::vector<int> dynamic_ind = find_nonzero(dynamic_mask_new);
-//     // increment static layer values for those in dynamic
-//     for (int i_dy=0; i_dy<dynamic_ind.size(); i_dy++) {
-//         std::vector<int> current_ind = ind_2_rc(dynamic_ind[i_dy]);
-//         if (static_layer(current_ind[1], current_ind[0]) < 100) {
-//             static_layer(current_ind[1], current_ind[0])++;
-//         }
-//     }
-//     Eigen::Array<bool, Eigen::Dynamic, Eigen::Dynamic> static_mask = (static_layer.array() >= STATIC_THRESH);
-//     Eigen::Array<bool, Eigen::Dynamic, Eigen::Dynamic> dynamic_static_overlap = dynamic_mask_new && static_mask;
-//     std::vector<int> dynamic_static_overlap_ind = find_nonzero(dynamic_static_overlap);
-//     // increment static layer values for overlap, remove hits over thresh from dynamic
-//     for (int i_d=0; i_d<dynamic_static_overlap_ind.size(); i_d++) {
-//         std::vector<int> current_ind = ind_2_rc(dynamic_static_overlap_ind[i_d]);
-// //        static_layer(current_ind[0], current_ind[1])++;
-//         if (static_layer(current_ind[0], current_ind[1]) >= STATIC_THRESH) {
-//             dynamic_layer(current_ind[0], current_ind[1]) = 0;
-//         }
-//     }
 
     cv::Mat new_img = converter.update_scan(current_scan, angles_vector, SCAN_COUNT);
     sensor_msgs::ImagePtr new_ros_img = cv_2_ros_img(new_img);
@@ -271,7 +251,7 @@ void Gridmap::viz_layers() {
     stat_col.b = 0.0;
     std::vector<int> stat_vector(static_layer.data(), static_layer.data()+static_layer.size());
     for (size_t i=0; i<stat_vector.size(); i++) {
-        if (stat_vector[i] != 0) {
+        if (stat_vector[i] >= STATIC_THRESH) {
             geometry_msgs::Point cube = cell_2_coord(i);
             stat_marker.points.push_back(cube);
             stat_marker.colors.push_back(stat_col);
@@ -525,7 +505,7 @@ std::vector<int> Gridmap::ind_2_rc(int ind) {
     //[row, col]
     std::vector<int> rc;
     int row = floor(ind/map_width);
-    int col = ind%map_width-1;
+    int col = ind%map_width;
     rc.push_back(row);
     rc.push_back(col);
     return rc;
