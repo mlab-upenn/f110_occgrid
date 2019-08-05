@@ -114,10 +114,17 @@ Gridmap::Gridmap(ros::NodeHandle &nh) : nh_(nh), it(nh), converter() {
 }
 
 // callbacks
-void Gridmap::map_callback(const nav_msgs::OccupancyGrid::ConstPtr& map_msg) {
-    // reroute to env_layer
-    env_layer_msg = *map_msg;
-    ROS_INFO("Map rerouted.");
+void Gridmap::map_callback(const nav_msgs::OccupancyGrid::ConstPtr& msg) {
+    // update env layer
+    nav_msgs::OccupancyGrid map_msg = *msg;
+    std::vector<int8_t> map_data = map_msg.data;
+    // convert to int
+    std::vector<int> map_data_int(map_data.begin(), map_data.end());
+    for (int i=0; i<map_data_int.size(); i++) {
+        std::vector<int> rc = ind_2_rc(i);
+        env_layer(rc[0], rc[1]) = map_data_int[i];
+    }
+    ROS_INFO("Map updated.");
 }
 
 void Gridmap::scan_callback(const sensor_msgs::LaserScan::ConstPtr& scan_msg) {
