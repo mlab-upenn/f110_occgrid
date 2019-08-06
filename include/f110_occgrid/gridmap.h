@@ -4,6 +4,7 @@
 #include <std_msgs/Float64MultiArray.h>
 #include <sensor_msgs/LaserScan.h>
 #include <sensor_msgs/image_encodings.h>
+#include <sensor_msgs/CompressedImage.h>
 #include <nav_msgs/OccupancyGrid.h>
 #include <nav_msgs/Odometry.h>
 #include <std_msgs/ColorRGBA.h>
@@ -60,6 +61,8 @@ private:
     ros::Publisher env_viz_pub;
     ros::Publisher stat_viz_pub;
     ros::Publisher dyn_viz_pub;
+
+    ros::Publisher compressed_layer_pub;
 
     ros::ServiceServer service;
 
