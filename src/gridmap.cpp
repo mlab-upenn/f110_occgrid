@@ -148,7 +148,7 @@ void Gridmap::scan_callback(const sensor_msgs::LaserScan::ConstPtr& scan_msg) {
     // and if the value over threshold, remove overlaps in dynamic.
     // NEW 3. previous doesn't work because there's no static to start with
     // new approach: before checking overlap, increment value that's in dynamic
-    ros::Time scan_cb_start = ros::Time::now();
+    // ros::Time scan_cb_start = ros::Time::now();
     std::vector<float> ranges = scan_msg->ranges;
     current_scan = ranges;
     // put scan into dynamic layer
@@ -180,7 +180,7 @@ void Gridmap::scan_callback(const sensor_msgs::LaserScan::ConstPtr& scan_msg) {
             }
         }
     }
-    ros::Time after_scan_loop = ros::Time::now();
+    // ros::Time after_scan_loop = ros::Time::now();
     
     // find overlap between dynamic and env, 1 if true, 0 if false
 
@@ -208,7 +208,7 @@ void Gridmap::scan_callback(const sensor_msgs::LaserScan::ConstPtr& scan_msg) {
         }
     }
 
-    ros::Time after_layer_thresh = ros::Time::now();
+    // ros::Time after_layer_thresh = ros::Time::now();
 
     // cv::Mat new_img = converter.update_scan(current_scan, angles_vector, SCAN_COUNT);
     // sensor_msgs::ImagePtr new_ros_img = cv_2_ros_img(new_img);
@@ -217,13 +217,13 @@ void Gridmap::scan_callback(const sensor_msgs::LaserScan::ConstPtr& scan_msg) {
     cv::Mat layers_img = layers_2_cv_img();
     sensor_msgs::ImagePtr layers_img_ros = cv_2_ros_img(layers_img);
     layers_pub.publish(layers_img_ros);
-    ros::Time after_image_convert = ros::Time::now();
+    // ros::Time after_image_convert = ros::Time::now();
     // std::vector<uchar> buf;
     // bool success = cv::imencode(".jpg", layers_img, buf);
     // sensor_msgs::CompressedImage compressed_layer;
     // compressed_layer.data = buf;
     // compressed_layer_pub.publish(compressed_layer);
-    ros::Time after_compression = ros::Time::now();
+    // ros::Time after_compression = ros::Time::now();
     // publish to the topics
     // pub_layers();
 
@@ -232,8 +232,8 @@ void Gridmap::scan_callback(const sensor_msgs::LaserScan::ConstPtr& scan_msg) {
 
     // clear dynamic layer
     dynamic_layer.setZero();
-    ros::Time all_done = ros::Time::now();
-    ROS_INFO_STREAM("Running times, scan loop: " << (after_scan_loop - scan_cb_start).toSec() << ", layer thresholding: " << (after_layer_thresh - after_scan_loop).toSec() << ", to image: " << (after_image_convert - after_layer_thresh).toSec() << ", compression: " << (after_compression - after_image_convert).toSec() << ", viz: " << (all_done - after_compression).toSec());
+    // ros::Time all_done = ros::Time::now();
+    // ROS_INFO_STREAM("Running times, scan loop: " << (after_scan_loop - scan_cb_start).toSec() << ", layer thresholding: " << (after_layer_thresh - after_scan_loop).toSec() << ", to image: " << (after_image_convert - after_layer_thresh).toSec() << ", compression: " << (after_compression - after_image_convert).toSec() << ", viz: " << (all_done - after_compression).toSec());
 }
 
 // visualize layers
